@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 use gpui::{App, AsyncApp, QuitMode, WindowAppearance};
-use gpui_platform::application;
 use gpui_component::theme::{Theme, ThemeConfig, ThemeMode, ThemeSet};
+use gpui_platform::application;
 
 use crate::cli::Command;
 use crate::overlay::{self, Overlay};
@@ -180,8 +180,7 @@ fn load_theme(path: &Path) -> Option<ThemeConfig> {
 fn init_logging() {
     use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
-    let filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("lwsfh=info"));
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("lwsfh=info"));
     tracing_subscriber::registry()
         .with(fmt::layer().with_target(false))
         .with(filter)

@@ -174,16 +174,23 @@ impl Render for SwitcherView {
             .layout_line(&selected_title, px(TITLE_FONT_SIZE), &[run], None)
             .width
             .to_f64() as f32;
-        let title_width = (text_width + TITLE_PAD_X).min(TITLE_WIDTH).min(content_width);
+        let title_width = (text_width + TITLE_PAD_X)
+            .min(TITLE_WIDTH)
+            .min(content_width);
         let title_left =
             (icon_center - title_width / 2.0).clamp(0.0, (content_width - title_width).max(0.0));
 
         let macos = self.macos;
         let boxes = slots.into_iter().map(|slot| match slot {
-            Slot::Item(i) => {
-                item(&self.entries[i], i == self.selected, box_size, icon_size, macos, cx)
-                    .into_any_element()
-            }
+            Slot::Item(i) => item(
+                &self.entries[i],
+                i == self.selected,
+                box_size,
+                icon_size,
+                macos,
+                cx,
+            )
+            .into_any_element(),
             Slot::ArrowLeft => arrow_box(true, box_size, icon_size, cx).into_any_element(),
             Slot::ArrowRight => arrow_box(false, box_size, icon_size, cx).into_any_element(),
         });
