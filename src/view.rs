@@ -12,6 +12,8 @@ use crate::{hyprland, icon};
 const CONTEXT: &str = "SwitcherView";
 const TITLE_MAX: usize = 120;
 const TITLE_WIDTH: f32 = 320.0;
+const TITLE_FONT_SIZE: f32 = 14.0;
+const TITLE_PAD_X: f32 = 24.0; // px_3 on both sides
 
 const MAX_BOX: f32 = 100.0;
 const MIN_BOX: f32 = 80.0;
@@ -163,7 +165,16 @@ impl Render for SwitcherView {
             .position(|s| matches!(s, Slot::Item(i) if *i == self.selected))
             .unwrap_or(0);
         let icon_center = selected_slot as f32 * (box_size + ITEM_GAP) + box_size / 2.0;
-        let title_width = content_width.min(TITLE_WIDTH);
+        // Measure the title so its box hugs the text: centre it under the icon, clamp to the row
+        // edges (so edge items start flush and run outward rather than truncating), and only cap
+        // the width — truncating — when the text is longer than the max.
+        let run = window.text_style().to_run(selected_title.len());
+        let text_width = window
+            .text_system()
+            .layout_line(&selected_title, px(TITLE_FONT_SIZE), &[run], None)
+            .width
+            .to_f64() as f32;
+        let title_width = (text_width + TITLE_PAD_X).min(TITLE_WIDTH).min(content_width);
         let title_left =
             (icon_center - title_width / 2.0).clamp(0.0, (content_width - title_width).max(0.0));
 
@@ -229,7 +240,7 @@ impl Render for SwitcherView {
                                         } else {
                                             theme.secondary.opacity(ITEM_OPACITY)
                                         })
-                                        .text_sm()
+                                        .text_size(px(TITLE_FONT_SIZE))
                                         .text_center()
                                         .text_color(theme.foreground)
                                         .truncate()
