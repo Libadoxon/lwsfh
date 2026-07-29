@@ -2,35 +2,22 @@
 name = "lwsfh"
 version = "0.1.0"
 edition = "2024"
+description = "Libadoxon's window switcher for Hyprland - MacOs inspired window switcher"
 
 [dependencies]
 anyhow = "1.0.102"
+clap = { version = "4", features = ["derive"] }
 dirs = "6.0.0"
+flume = "0.12"
+freedesktop-icons = "0.4"
 gpui = { git = "https://github.com/zed-industries/zed" }
 gpui-component = { git = "https://github.com/longbridge/gpui-component", version = "0.5.1" }
 gpui-component-assets = { git = "https://github.com/longbridge/gpui-component", version = "0.5.1" }
-gpui_macros = { git = "https://github.com/zed-industries/zed" }
 gpui_platform = { git = "https://github.com/zed-industries/zed", features = [
   "font-kit",
   "wayland",
 ] }
-icu_collator = { version = "2.2", features = ["compiled_data"] }
-icu_locale_core = "2.2"
-ignore = "0.4"
-jiff = "0.2.24"
-magic = "0.16.7"
-mime = "0.3"
-nix = { version = "0.31", features = ["fs"] }
-notify = "8.2.0"
-regex = "1"
-rust-embed = "8"
 serde = { version = "1.0.228", features = ["derive"] }
-serde-jsonlines = { version = "0.7.0", features = ["async"] }
 serde_json = "1.0.149"
-size = "0.5"
-smol = "2.0.2"
-strum = { version = "0.28.0", features = ["derive"] }
-toml = "1.1.2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-trash = "5.2.6"

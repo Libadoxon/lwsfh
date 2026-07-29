@@ -1,5 +1,5 @@
 {
-  description = "Configurable fast and stylish file explorer";
+  description = "Libadoxon's window switcher for Hyprland";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -68,7 +68,7 @@
           commonArgs
           // {
             inherit cargoArtifacts;
-            meta.description = "DESC";
+            meta.description = "Libadoxon's window switcher for Hyprland";
             postFixup = ''
               wrapProgram $out/bin/lwsfh \
               --suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath buildInputs}
