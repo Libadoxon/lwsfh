@@ -6,6 +6,9 @@ use crate::ipc;
 #[derive(Parser)]
 #[command(version, about)]
 pub struct Cli {
+    /// Use a macOS-style look: no selection/title background; the selected icon grows instead.
+    #[arg(long)]
+    pub macos: bool,
     #[command(subcommand)]
     pub command: Option<Command>,
 }

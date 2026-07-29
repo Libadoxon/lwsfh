@@ -18,6 +18,6 @@ fn main() -> Result<()> {
         // running daemon over its Unix socket.
         Some(cmd) => cli::handle_client_command(cmd),
         // No subcommand: become the long-running daemon that hosts the GPUI app.
-        None => daemon::run(),
+        None => daemon::run(cli.macos),
     }
 }

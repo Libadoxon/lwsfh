@@ -17,6 +17,7 @@ pub struct Overlay {
 pub fn open(
     entries: Vec<Entry>,
     selected: usize,
+    macos: bool,
     events: flume::Sender<Event>,
     cx: &mut App,
 ) -> Result<Overlay> {
@@ -47,7 +48,7 @@ pub fn open(
 
     let view_cell = std::cell::RefCell::new(None);
     let window = cx.open_window(options, |window, cx| {
-        let view = cx.new(|cx| SwitcherView::new(entries, selected, events, cx));
+        let view = cx.new(|cx| SwitcherView::new(entries, selected, macos, events, cx));
         let handle = view.read(cx).focus_handle();
         window.focus(&handle, cx);
         *view_cell.borrow_mut() = Some(view.clone());

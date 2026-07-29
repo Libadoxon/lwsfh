@@ -16,7 +16,7 @@ pub enum Event {
     Cancel,
 }
 
-pub fn run() -> Result<()> {
+pub fn run(macos: bool) -> Result<()> {
     init_logging();
 
     if ipc::daemon_running() {
@@ -35,7 +35,7 @@ pub fn run() -> Result<()> {
             Theme::change(ThemeMode::Dark, None, cx);
 
             cx.spawn(async move |cx: &mut AsyncApp| {
-                run_loop(events_rx, events_tx, cx).await;
+                run_loop(events_rx, events_tx, macos, cx).await;
                 ipc::cleanup();
             })
             .detach();
@@ -44,8 +44,13 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
-async fn run_loop(rx: flume::Receiver<Event>, events: flume::Sender<Event>, cx: &mut AsyncApp) {
-    let mut state = WindowState::new(events);
+async fn run_loop(
+    rx: flume::Receiver<Event>,
+    events: flume::Sender<Event>,
+    macos: bool,
+    cx: &mut AsyncApp,
+) {
+    let mut state = WindowState::new(events, macos);
     while let Ok(event) = rx.recv_async().await {
         match event {
             Event::Command(Command::Go { reverse }) => state.go(reverse, cx),
@@ -63,13 +68,15 @@ async fn run_loop(rx: flume::Receiver<Event>, events: flume::Sender<Event>, cx: 
 struct WindowState {
     overlay: Option<Overlay>,
     events: flume::Sender<Event>,
+    macos: bool,
 }
 
 impl WindowState {
-    fn new(events: flume::Sender<Event>) -> Self {
+    fn new(events: flume::Sender<Event>, macos: bool) -> Self {
         Self {
             overlay: None,
             events,
+            macos,
         }
     }
 
@@ -97,7 +104,8 @@ impl WindowState {
         let entries: Vec<Entry> = windows.iter().map(Entry::from_window).collect();
         let selected = if reverse { entries.len() - 1 } else { 1 };
 
-        match cx.update(|cx| overlay::open(entries, selected, self.events.clone(), cx)) {
+        let macos = self.macos;
+        match cx.update(|cx| overlay::open(entries, selected, macos, self.events.clone(), cx)) {
             Ok(overlay) => self.overlay = Some(overlay),
             Err(e) => tracing::error!(%e, "failed to open overlay"),
         }

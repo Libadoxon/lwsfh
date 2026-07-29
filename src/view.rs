@@ -16,6 +16,7 @@ const TITLE_WIDTH: f32 = 320.0;
 const MAX_BOX: f32 = 100.0;
 const MIN_BOX: f32 = 80.0;
 const ICON_RATIO: f32 = 0.8;
+const MACOS_SELECTED_RATIO: f32 = 1.0; // selected icon fills its box in macOS style
 const ITEM_GAP: f32 = 12.0; // matches gap_3
 const BAR_PADDING_X: f32 = 32.0; // matches px_4 on both sides
 const SCREEN_USABLE: f32 = 0.9;
@@ -60,6 +61,7 @@ impl Entry {
 pub struct SwitcherView {
     entries: Vec<Entry>,
     selected: usize,
+    macos: bool,
     focus_handle: FocusHandle,
     events: flume::Sender<Event>,
     super_armed: bool,
@@ -69,6 +71,7 @@ impl SwitcherView {
     pub fn new(
         entries: Vec<Entry>,
         selected: usize,
+        macos: bool,
         events: flume::Sender<Event>,
         cx: &mut Context<Self>,
     ) -> Self {
@@ -76,6 +79,7 @@ impl SwitcherView {
         Self {
             entries,
             selected,
+            macos,
             focus_handle: cx.focus_handle(),
             events,
             super_armed: false,
@@ -163,15 +167,12 @@ impl Render for SwitcherView {
         let title_left =
             (icon_center - title_width / 2.0).clamp(0.0, (content_width - title_width).max(0.0));
 
+        let macos = self.macos;
         let boxes = slots.into_iter().map(|slot| match slot {
-            Slot::Item(i) => item(
-                &self.entries[i],
-                i == self.selected,
-                box_size,
-                icon_size,
-                cx,
-            )
-            .into_any_element(),
+            Slot::Item(i) => {
+                item(&self.entries[i], i == self.selected, box_size, icon_size, macos, cx)
+                    .into_any_element()
+            }
             Slot::ArrowLeft => arrow_box(true, box_size, icon_size, cx).into_any_element(),
             Slot::ArrowRight => arrow_box(false, box_size, icon_size, cx).into_any_element(),
         });
@@ -223,7 +224,11 @@ impl Render for SwitcherView {
                                         .px_3()
                                         .py_1()
                                         .rounded_md()
-                                        .bg(theme.secondary.opacity(ITEM_OPACITY))
+                                        .bg(if macos {
+                                            theme.secondary.opacity(0.0)
+                                        } else {
+                                            theme.secondary.opacity(ITEM_OPACITY)
+                                        })
                                         .text_sm()
                                         .text_center()
                                         .text_color(theme.foreground)
@@ -302,13 +307,20 @@ fn item(
     selected: bool,
     box_size: f32,
     icon_size: f32,
+    macos: bool,
     cx: &Context<SwitcherView>,
 ) -> impl IntoElement {
     let theme = cx.theme();
-    let background = if selected {
+    // macOS style shows selection by growing the icon instead of a background highlight.
+    let background = if selected && !macos {
         theme.secondary.opacity(ITEM_SELECTED_OPACITY)
     } else {
         theme.secondary.opacity(0.0)
+    };
+    let icon_size = if selected && macos {
+        box_size * MACOS_SELECTED_RATIO
+    } else {
+        icon_size
     };
 
     div()
