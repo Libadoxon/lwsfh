@@ -15,10 +15,13 @@ const TITLE_MAX: usize = 120;
 const MAX_BOX: f32 = 100.0;
 const MIN_BOX: f32 = 80.0;
 const ICON_RATIO: f32 = 0.8;
-const ITEM_GAP: f32 = 16.0; // matches gap_4
-const BAR_PADDING_X: f32 = 48.0; // matches px_6 on both sides
+const ITEM_GAP: f32 = 12.0; // matches gap_3
+const BAR_PADDING_X: f32 = 32.0; // matches px_4 on both sides
 const SCREEN_USABLE: f32 = 0.9;
 const BAR_OPACITY: f32 = 0.7;
+// Item backgrounds sit on top of the bar, so both stay below BAR_OPACITY.
+const ITEM_OPACITY: f32 = 0.35;
+const ITEM_SELECTED_OPACITY: f32 = 0.55;
 const FALLBACK_SCREEN_WIDTH: f32 = 1920.0;
 const SPACE_FROM_TOP: f32 = 0.2;
 
@@ -188,9 +191,9 @@ impl Render for SwitcherView {
                             .flex()
                             .flex_col()
                             .items_center()
-                            .gap_3()
-                            .py_5()
-                            .px_6()
+                            .gap_2()
+                            .py_3()
+                            .px_4()
                             .bg(theme.popover.opacity(BAR_OPACITY))
                             .border_1()
                             .border_color(theme.border)
@@ -200,16 +203,16 @@ impl Render for SwitcherView {
                                     .flex()
                                     .flex_row()
                                     .items_center()
-                                    .gap_4()
+                                    .gap_3()
                                     .children(boxes),
                             )
                             .child(
                                 div()
                                     .max_w(px(row_width))
-                                    .px_3()
+                                    .px_2()
                                     .py_1()
                                     .rounded_md()
-                                    .bg(theme.secondary)
+                                    .bg(theme.secondary.opacity(ITEM_OPACITY))
                                     .text_sm()
                                     .text_color(theme.foreground)
                                     .truncate()
@@ -289,15 +292,10 @@ fn item(
     cx: &Context<SwitcherView>,
 ) -> impl IntoElement {
     let theme = cx.theme();
-    let border = if selected {
-        theme.accent
-    } else {
-        theme.accent.opacity(0.0)
-    };
     let background = if selected {
-        theme.accent.opacity(0.2)
+        theme.secondary.opacity(ITEM_SELECTED_OPACITY)
     } else {
-        theme.accent.opacity(0.0)
+        theme.secondary.opacity(0.0)
     };
 
     div()
@@ -307,15 +305,13 @@ fn item(
         .justify_center()
         .size(px(box_size))
         .rounded_lg()
-        .border_1()
-        .border_color(border)
         .bg(background)
         .child(icon_element(entry, icon_size))
         .child(
             div()
                 .absolute()
-                .bottom_0()
-                .right_0()
+                .bottom_2()
+                .right_2()
                 .min_w(px(16.0))
                 .h(px(16.0))
                 .flex()
@@ -326,8 +322,16 @@ fn item(
                 .bg(theme.secondary)
                 .text_xs()
                 .text_color(theme.foreground)
-                .child(entry.workspace.to_string()),
+                .child(workspace_label(entry.workspace)),
         )
+}
+
+fn workspace_label(workspace: i32) -> String {
+    if workspace < 0 {
+        "S".to_string()
+    } else {
+        workspace.to_string()
+    }
 }
 
 fn arrow_box(
@@ -348,8 +352,6 @@ fn arrow_box(
         .justify_center()
         .size(px(box_size))
         .rounded_lg()
-        .border_1()
-        .border_color(theme.accent.opacity(0.0))
         .child(Icon::new(icon).size(px(icon_size)).text_color(theme.accent))
 }
 
@@ -439,6 +441,12 @@ mod tests {
     #[test]
     fn clip_truncates_with_ellipsis() {
         assert_eq!(clip("abcdef", 4), "abc…");
+    }
+
+    #[test]
+    fn special_workspaces_show_s() {
+        assert_eq!(workspace_label(3), "3");
+        assert_eq!(workspace_label(-98), "S");
     }
 
     #[test]
