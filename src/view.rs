@@ -11,6 +11,7 @@ use crate::{hyprland, icon};
 
 const CONTEXT: &str = "SwitcherView";
 const TITLE_MAX: usize = 120;
+const TITLE_WIDTH: f32 = 320.0;
 
 const MAX_BOX: f32 = 100.0;
 const MIN_BOX: f32 = 80.0;
@@ -18,7 +19,7 @@ const ICON_RATIO: f32 = 0.8;
 const ITEM_GAP: f32 = 12.0; // matches gap_3
 const BAR_PADDING_X: f32 = 32.0; // matches px_4 on both sides
 const SCREEN_USABLE: f32 = 0.9;
-const BAR_OPACITY: f32 = 0.7;
+const BAR_OPACITY: f32 = 0.5;
 // Item backgrounds sit on top of the bar, so both stay below BAR_OPACITY.
 const ITEM_OPACITY: f32 = 0.35;
 const ITEM_SELECTED_OPACITY: f32 = 0.55;
@@ -149,23 +150,31 @@ impl Render for SwitcherView {
             .map(|e| clip(&e.title, TITLE_MAX))
             .unwrap_or_default();
 
-        let boxes =
-            paged_slots(count, self.selected, capacity)
-                .into_iter()
-                .map(|slot| match slot {
-                    Slot::Item(i) => item(
-                        &self.entries[i],
-                        i == self.selected,
-                        box_size,
-                        icon_size,
-                        cx,
-                    )
-                    .into_any_element(),
-                    Slot::ArrowLeft => arrow_box(true, box_size, icon_size, cx).into_any_element(),
-                    Slot::ArrowRight => {
-                        arrow_box(false, box_size, icon_size, cx).into_any_element()
-                    }
-                });
+        let slots = paged_slots(count, self.selected, capacity);
+        let slot_count = slots.len();
+        let content_width =
+            slot_count as f32 * box_size + slot_count.saturating_sub(1) as f32 * ITEM_GAP;
+        let selected_slot = slots
+            .iter()
+            .position(|s| matches!(s, Slot::Item(i) if *i == self.selected))
+            .unwrap_or(0);
+        let icon_center = selected_slot as f32 * (box_size + ITEM_GAP) + box_size / 2.0;
+        let title_width = content_width.min(TITLE_WIDTH);
+        let title_left =
+            (icon_center - title_width / 2.0).clamp(0.0, (content_width - title_width).max(0.0));
+
+        let boxes = slots.into_iter().map(|slot| match slot {
+            Slot::Item(i) => item(
+                &self.entries[i],
+                i == self.selected,
+                box_size,
+                icon_size,
+                cx,
+            )
+            .into_any_element(),
+            Slot::ArrowLeft => arrow_box(true, box_size, icon_size, cx).into_any_element(),
+            Slot::ArrowRight => arrow_box(false, box_size, icon_size, cx).into_any_element(),
+        });
 
         div()
             .track_focus(&self.focus_handle)
@@ -207,16 +216,20 @@ impl Render for SwitcherView {
                                     .children(boxes),
                             )
                             .child(
-                                div()
-                                    .max_w(px(row_width))
-                                    .px_2()
-                                    .py_1()
-                                    .rounded_md()
-                                    .bg(theme.secondary.opacity(ITEM_OPACITY))
-                                    .text_sm()
-                                    .text_color(theme.foreground)
-                                    .truncate()
-                                    .child(selected_title),
+                                div().w(px(content_width)).flex().flex_row().child(
+                                    div()
+                                        .ml(px(title_left))
+                                        .w(px(title_width))
+                                        .px_3()
+                                        .py_1()
+                                        .rounded_md()
+                                        .bg(theme.secondary.opacity(ITEM_OPACITY))
+                                        .text_sm()
+                                        .text_center()
+                                        .text_color(theme.foreground)
+                                        .truncate()
+                                        .child(selected_title),
+                                ),
                             ),
                     ),
             )
