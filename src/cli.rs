@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
@@ -9,6 +11,9 @@ pub struct Cli {
     /// Use a macOS-style look: no selection/title background; the selected icon grows instead.
     #[arg(long)]
     pub macos: bool,
+    /// Path to a theme JSON file (same format as the files in the `themes/` folder).
+    #[arg(long, value_name = "PATH")]
+    pub theme: Option<PathBuf>,
     #[command(subcommand)]
     pub command: Option<Command>,
 }

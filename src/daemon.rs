@@ -1,9 +1,11 @@
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use std::time::Duration;
 
 use anyhow::Result;
-use gpui::{AsyncApp, QuitMode};
+use gpui::{App, AsyncApp, QuitMode, WindowAppearance};
 use gpui_platform::application;
-use gpui_component::theme::{Theme, ThemeMode};
+use gpui_component::theme::{Theme, ThemeConfig, ThemeMode, ThemeSet};
 
 use crate::cli::Command;
 use crate::overlay::{self, Overlay};
@@ -16,7 +18,7 @@ pub enum Event {
     Cancel,
 }
 
-pub fn run(macos: bool) -> Result<()> {
+pub fn run(macos: bool, theme: Option<PathBuf>) -> Result<()> {
     init_logging();
 
     if ipc::daemon_running() {
@@ -32,7 +34,7 @@ pub fn run(macos: bool) -> Result<()> {
         .run(move |cx| {
             gpui_component::init(cx);
             view::init(cx);
-            Theme::change(ThemeMode::Dark, None, cx);
+            apply_theme(theme.as_deref(), cx);
 
             cx.spawn(async move |cx: &mut AsyncApp| {
                 run_loop(events_rx, events_tx, macos, cx).await;
@@ -128,6 +130,51 @@ impl WindowState {
             tracing::warn!(%e, "failed to focus window");
         }
     }
+}
+
+/// Apply the theme: `dark`/`light` select the built-in mode, any other value is a path to a
+/// theme JSON file, and no value falls back to the system appearance.
+fn apply_theme(theme: Option<&Path>, cx: &mut App) {
+    match theme.and_then(|p| p.to_str()) {
+        Some("dark") => Theme::change(ThemeMode::Dark, None, cx),
+        Some("light") => Theme::change(ThemeMode::Light, None, cx),
+        Some(_) => match theme.and_then(load_theme) {
+            Some(config) => Theme::global_mut(cx).apply_config(&Rc::new(config)),
+            None => Theme::change(system_mode(cx), None, cx),
+        },
+        None => Theme::change(system_mode(cx), None, cx),
+    }
+}
+
+fn system_mode(cx: &App) -> ThemeMode {
+    match cx.window_appearance() {
+        WindowAppearance::Dark | WindowAppearance::VibrantDark => ThemeMode::Dark,
+        WindowAppearance::Light | WindowAppearance::VibrantLight => ThemeMode::Light,
+    }
+}
+
+fn load_theme(path: &Path) -> Option<ThemeConfig> {
+    let contents = match std::fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(e) => {
+            tracing::error!(%e, path = %path.display(), "failed to read theme file");
+            return None;
+        }
+    };
+    let set: ThemeSet = match serde_json::from_str(&contents) {
+        Ok(set) => set,
+        Err(e) => {
+            tracing::error!(%e, "failed to parse theme file");
+            return None;
+        }
+    };
+    let mut themes = set.themes;
+    if themes.is_empty() {
+        tracing::error!("theme file contains no themes");
+        return None;
+    }
+    let index = themes.iter().position(|t| t.is_default).unwrap_or(0);
+    Some(themes.swap_remove(index))
 }
 
 fn init_logging() {
