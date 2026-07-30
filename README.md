@@ -1,6 +1,6 @@
 # lwsfh
 
-**L**ibadoxon's **w**indow **s**witcher **f**or **H**yprland - a fast, stylish, macOS-inspired Alt-Tab window switcher for [Hyprland](https://hyprland.org/).
+**L**ibadoxon's **w**indow **s**witcher **f**or **H**yprland - a fast, modern, macOS-inspired Alt-Tab window switcher for [Hyprland](https://hyprland.org/).
 
 Built in Rust on top of [GPUI](https://github.com/zed-industries/zed) (the Zed editor's UI framework) and [gpui-component](https://github.com/longbridge/gpui-component). It renders as a Wayland layer-shell overlay that grabs the keyboard, cycles through your windows in most-recently-used order, and focuses your pick when you release `SUPER`.
 
@@ -51,12 +51,8 @@ e theme files
   -V, --version       Print version
 ```
 
-- `lwsfh` — start the daemon.
-- `lwsfh go` / `lwsfh go --reverse` — open / advance the switcher (usually run by your keybind).
-- `lwsfh quit` — stop the daemon.
-
 ## Disclaimer on AI use
-This project has been largely written with claude opus
+This project has been largely written with the help of [Claude Code](https://claude.ai/)
 
 ## License
 
