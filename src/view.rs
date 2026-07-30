@@ -23,7 +23,6 @@ const ITEM_GAP: f32 = 12.0; // matches gap_3
 const BAR_PADDING_X: f32 = 32.0; // matches px_4 on both sides
 const SCREEN_USABLE: f32 = 0.9;
 const BAR_OPACITY: f32 = 0.5;
-// Item backgrounds sit on top of the bar, so both stay below BAR_OPACITY.
 const ITEM_OPACITY: f32 = 0.35;
 const ITEM_SELECTED_OPACITY: f32 = 0.55;
 const FALLBACK_SCREEN_WIDTH: f32 = 1920.0;
@@ -220,7 +219,8 @@ impl Render for SwitcherView {
                             .flex_col()
                             .items_center()
                             .gap_0p5()
-                            .py_3()
+                            .pt_3()
+                            .pb_0p5()
                             .px_4()
                             .bg(theme.popover.opacity(BAR_OPACITY))
                             .border_1()
