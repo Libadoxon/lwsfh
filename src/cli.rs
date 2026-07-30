@@ -8,10 +8,10 @@ use crate::ipc;
 #[derive(Parser)]
 #[command(version, about)]
 pub struct Cli {
-    /// Use a macOS-style look: no selection/title background; the selected icon grows instead.
+    /// Use a macOS-style look
     #[arg(long)]
     pub macos: bool,
-    /// Path to a theme JSON file (same format as the files in the `themes/` folder).
+    /// Path to a theme JSON file or either "dark" or "light", see repo for example theme files
     #[arg(long, value_name = "PATH")]
     pub theme: Option<PathBuf>,
     #[command(subcommand)]

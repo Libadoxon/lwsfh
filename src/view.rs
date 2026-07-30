@@ -219,7 +219,7 @@ impl Render for SwitcherView {
                             .flex()
                             .flex_col()
                             .items_center()
-                            .gap_2()
+                            .gap_0p5()
                             .py_3()
                             .px_4()
                             .bg(theme.popover.opacity(BAR_OPACITY))
@@ -395,7 +395,11 @@ fn arrow_box(
         .justify_center()
         .size(px(box_size))
         .rounded_lg()
-        .child(Icon::new(icon).size(px(icon_size)).text_color(theme.accent))
+        .child(
+            Icon::new(icon)
+                .size(px(icon_size))
+                .text_color(theme.foreground),
+        )
 }
 
 fn icon_element(entry: &Entry, size: f32) -> impl IntoElement {

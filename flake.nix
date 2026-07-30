@@ -69,6 +69,7 @@
           // {
             inherit cargoArtifacts;
             meta.description = "Libadoxon's window switcher for Hyprland";
+            meta.mainProgram = "lwsfh";
             postFixup = ''
               wrapProgram $out/bin/lwsfh \
               --suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath buildInputs}

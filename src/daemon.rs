@@ -84,7 +84,7 @@ impl WindowState {
 
     fn go(&mut self, reverse: bool, cx: &mut AsyncApp) {
         if let Some(overlay) = &self.overlay {
-            let _ = overlay.view.update(cx, |view, cx| view.cycle(!reverse, cx));
+            overlay.view.update(cx, |view, cx| view.cycle(!reverse, cx));
         } else {
             self.show(reverse, cx);
         }
@@ -136,14 +136,29 @@ impl WindowState {
 /// theme JSON file, and no value falls back to the system appearance.
 fn apply_theme(theme: Option<&Path>, cx: &mut App) {
     match theme.and_then(|p| p.to_str()) {
-        Some("dark") => Theme::change(ThemeMode::Dark, None, cx),
-        Some("light") => Theme::change(ThemeMode::Light, None, cx),
+        Some("dark") => {
+            tracing::info!("using built-in dark theme");
+            Theme::change(ThemeMode::Dark, None, cx);
+        }
+        Some("light") => {
+            tracing::info!("using built-in light theme");
+            Theme::change(ThemeMode::Light, None, cx);
+        }
         Some(_) => match theme.and_then(load_theme) {
-            Some(config) => Theme::global_mut(cx).apply_config(&Rc::new(config)),
-            None => Theme::change(system_mode(cx), None, cx),
+            Some(config) => {
+                tracing::info!(theme = %config.name, "using custom theme");
+                Theme::global_mut(cx).apply_config(&Rc::new(config));
+            }
+            None => apply_system_theme(cx),
         },
-        None => Theme::change(system_mode(cx), None, cx),
+        None => apply_system_theme(cx),
     }
+}
+
+fn apply_system_theme(cx: &mut App) {
+    let mode = system_mode(cx);
+    tracing::info!(?mode, "using system theme");
+    Theme::change(mode, None, cx);
 }
 
 fn system_mode(cx: &App) -> ThemeMode {
