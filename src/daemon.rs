@@ -10,7 +10,7 @@ use gpui_platform::application;
 use crate::cli::Command;
 use crate::overlay::{self, Overlay};
 use crate::view::{self, Entry};
-use crate::{hyprland, ipc};
+use crate::{hyprland, icon, ipc};
 
 pub enum Event {
     Command(Command),
@@ -24,6 +24,8 @@ pub fn run(macos: bool, theme: Option<PathBuf>) -> Result<()> {
     if ipc::daemon_running() {
         anyhow::bail!("another lwsfh daemon is already running");
     }
+
+    icon::prewarm();
 
     let (events_tx, events_rx) = flume::unbounded::<Event>();
     ipc::serve(events_tx.clone())?;

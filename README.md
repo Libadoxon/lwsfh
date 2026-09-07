@@ -8,7 +8,7 @@ Built in Rust on top of [GPUI](https://github.com/zed-industries/zed) (the Zed e
 
 - **Instant** - a warm daemon keeps the overlay ready, so it appears with no cold-start lag.
 - **MRU ordering** - windows are sorted by focus history.
-- **Hold-and-release** — hold `SUPER`, tap `Tab` to cycle, release to confirm. Feels like macOS ⌘-Tab.
+- **Hold-and-release** — hold `SUPER`, tap `Tab` to cycle, release to confirm.
 - **Themeable** - Ships with two style options (--macos flag to get the second style variant) as well as a --theme flag to completely customize colors, see ./themes for examples
 - **App icons** - resolves icons from your GTK/KDE icon theme via freedesktop lookups.
 
@@ -22,7 +22,7 @@ hl.bind("SUPER + Tab", (hl.dsp.exec_cmd("lwsfh go")), {
 })
 ```
 
-Enable blurring add:
+Enable blurring with:
 ```lua
 hl.layer_rule({
   ["blur"] = true,
