@@ -65,7 +65,6 @@ pub struct SwitcherView {
     macos: bool,
     focus_handle: FocusHandle,
     events: flume::Sender<Event>,
-    super_armed: bool,
 }
 
 impl SwitcherView {
@@ -83,7 +82,6 @@ impl SwitcherView {
             macos,
             focus_handle: cx.focus_handle(),
             events,
-            super_armed: false,
         }
     }
 
@@ -120,13 +118,12 @@ impl SwitcherView {
         let _ = self.events.send(Event::Cancel);
     }
 
-    // Wayland reports Super as `platform`. We arm on Super-down (delivered right after the
-    // overlay grabs keyboard focus) and fire on the following Super-up — the release-to-select
-    // gesture — while ignoring other modifier changes (e.g. Shift for reverse cycling).
+    // Wayland reports Super as `platform`, and sends the modifier state on keyboard enter as
+    // well as on every change. Any report without Super held ends the release-to-select
+    // gesture, whether Super was let go while the overlay was up or already before it grabbed
+    // the keyboard. Other modifier changes (e.g. Shift for reverse cycling) keep Super set.
     fn on_modifiers(&mut self, ev: &ModifiersChangedEvent, _: &mut Window, _: &mut Context<Self>) {
-        if ev.modifiers.platform {
-            self.super_armed = true;
-        } else if self.super_armed {
+        if !ev.modifiers.platform {
             self.emit_confirm();
         }
     }
